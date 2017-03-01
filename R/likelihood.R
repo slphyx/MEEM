@@ -133,7 +133,7 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
 
   tmp1<-read.csv(inp$tempfile1)
   tyears<-tmp1$tyears
-
+  dtout<-tmp1$dtout
   # # SOLVE THE ODEs and get output
   timesfit <- seq(0, tyears, by = dtout) # Model run time
   #Solve ODE
