@@ -47,7 +47,7 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
     g6pDd<-pvxy[,7] # G6PDd def proportion
     
     ##### export for using with malrates #####
-    forfile1 <- list(N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps)
+    forfile1 <- list(N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps,tyears=tyears)
     forfile2 <- data.frame(pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd)
     tempfile1 <- paste0(tempdir(),"/meemtempfile1.csv")
     tempfile2 <- paste0(tempdir(),"/meemtempfile2.csv")
