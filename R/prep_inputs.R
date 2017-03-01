@@ -52,7 +52,7 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
     tempfile1 <- paste0(tempdir(),"/meemtempfile1.csv")
     tempfile2 <- paste0(tempdir(),"/meemtempfile2.csv")
     write.csv(forfile1, file = tempfile1)
-    write.csv(forfile1, file = tempfile2)
+    write.csv(forfile2, file = tempfile2)
     ##########################
     
     
