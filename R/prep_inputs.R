@@ -47,7 +47,7 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
     g6pDd<-pvxy[,7] # G6PDd def proportion
     
     ##### export for using with malrates #####
-    forfile1 <- list(N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps,time=time)
+    forfile1 <- list(N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps)
     forfile2 <- data.frame(pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd)
     tempfile1 <- paste0(tempdir(),"/meemtempfile1.csv")
     tempfile2 <- paste0(tempdir(),"/meemtempfile2.csv")
@@ -293,7 +293,7 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
     }
   }
 
-  return(list(nun=nun,vnun=vnun, connect=connect, connect3=connect3,cov_vmw=cov_vmw,vmw_eff=vmw_eff, vmw_time=vmw_time, c_itn=c_itn, itn_time=itn_time, sens_vmw=sens_vmw, sens_his=sens_his, sens_oth=sens_oth, eln_inp=eln_inp, eln_t=eln_t, mineln=mineln, tempfile1, tempfile2))
+  return(list(nun=nun,vnun=vnun, connect=connect, connect3=connect3,cov_vmw=cov_vmw,vmw_eff=vmw_eff, vmw_time=vmw_time, c_itn=c_itn, itn_time=itn_time, sens_vmw=sens_vmw, sens_his=sens_his, sens_oth=sens_oth, eln_inp=eln_inp, eln_t=eln_t, mineln=mineln, tempfile1=tempfile1, tempfile2=tempfile2))
 }
 #######################################################################
 
