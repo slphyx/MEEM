@@ -1,0 +1,14 @@
+#exportPattern("^[[:alpha:]]+")
+export("MM_Init",
+       "MM_EpiModel",
+       "MM_CalcLL",
+       "MM_Transitions",
+       "MM_Inputs",
+       "MM_GenInitOde",
+       "MM_SheetalPars",
+       "MM_RunMod")
+importFrom(Rcpp, evalCpp)
+importFrom(deSolve, ode)
+importFrom(XLConnect, readWorksheet)
+importFrom(XLConnect, loadWorkbook)
+useDynLib(MEEM)

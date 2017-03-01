@@ -1,0 +1,13 @@
+Package: MEEM
+Type: Package
+Title: MEEM
+Version: 0.0.3
+Author: Lisa White, Sheetal Silal, Sompob Saralamba
+Maintainer: Sompob Saralamba <sompob@tropmedres.ac>
+Description: Zzzz....
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports: Rcpp, deSolve, XLConnect 
+Depends: adaptivetau
+LinkingTo: Rcpp
