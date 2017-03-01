@@ -2,9 +2,8 @@
 # for removing NA from a data frame/list
 removeNA<-function(inputDF){
   tmpDF <- inputDF
-  namels <- names(inputDF)
 
-  for(n in namels){
+  for(n in names(inputDF)){
     txt<-paste0("tmpDF$",n,"<-","tmpDF$",n,"[!is.na(tmpDF$",n,")]")
     eval(parse(text = txt))
   }

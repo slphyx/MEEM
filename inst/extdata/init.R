@@ -12,7 +12,7 @@ time<-startyear+seq(0,tyears,dtout) # time vector
 
 
 # ************************************************************************************* #
-# import data
+# import data; All data were removed from the Github version
 # ************************************************************************************* #
 
 alldata = loadWorkbook(system.file("extdata", "Cambodia_PfPv_provincial_data.xlsx", package="MEEM"))

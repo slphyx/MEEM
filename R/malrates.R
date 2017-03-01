@@ -2,19 +2,20 @@
 # Function to calculate transition rates, given variables and parameters
 # ************************************************************************************* #
 MM_Malrates <- function(x, input, parmal, t, ti) {
-  ###should remove to somewhere!!
-  N<-24   # number of patches
-  B<-23   # number of variables per patch
-  A<-261  # number of transitions per patch
-  V<-N*B # total number of variables
-  L<-N*A #total number of transitions
-  startyear=1995 # starting year of simulation
-  tyears<-20 # total years of simulation
-  dtout<-1/12 # output timestep
-  tsteps<-round(tyears/dtout) # number of time steps
-  time<-startyear+seq(0,tyears,dtout) # time vector
 
-
+  tempfile1<-input$tempfile1
+  tempfile2<-input$tempfile2
+  tmp1<-read.csv(tempfile1)
+  tmp2<-read.csv(tempfile2)
+  for(n in names(tmp1)){
+    txt<-paste0(n,"<-","tmp1$",n)
+    eval(parse(text = txt))
+  }
+  for(n in names(tmp2)){
+    txt<-paste0(n,"<-","tmp2$",n)
+    eval(parse(text = txt))
+  }
+  
   varind<-matrix(0,nrow=B,ncol=N)
   traind<-matrix(0,nrow=A,ncol=N)
   for (n in 1:N){
@@ -25,7 +26,7 @@ MM_Malrates <- function(x, input, parmal, t, ti) {
       traind[a,n]<-(n-1)*A+a
     }
   }
-
+  ###########################
   falpop<-1:10
   vivpop<-11:23
   ############################
