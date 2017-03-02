@@ -593,7 +593,8 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
   }
   #Alternate formulation of transitions matrix (used in epimodel function)
   transitions2<-NULL
-  for (i in 1: length(transitions)){
+  transitionslength<-length(transitions)
+  for (i in 1: transitionslength){
     transitions2<-rbind(transitions2,cbind(as.integer(names(transitions[[i]]))[1],as.integer(names(transitions[[i]]))[2], transitions[[i]][1], transitions[[i]][2]))
   }
   
@@ -603,7 +604,8 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
               vmw_time=vmw_time, c_itn=c_itn, itn_time=itn_time, sens_vmw=sens_vmw, sens_his=sens_his, 
               sens_oth=sens_oth, eln_inp=eln_inp, eln_t=eln_t, mineln=mineln, 
               N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps,
-              tyears=tyears,pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd,transitions2=transitions2
+              tyears=tyears,pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd,
+              transitions=transitions, transitions2=transitions2, transitionslength=transitionslength
               ))
 }
 #######################################################################

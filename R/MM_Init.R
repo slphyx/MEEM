@@ -119,17 +119,17 @@ MM_SheetalPars <- function(){
     ))
 }
 
-## temporary function for creating all parameters needed by Sheetal code
-MM_Init<-function(parmal=NULL, maldata=NULL,climatedata=NULL){
-  if(is.null(maldata) && is.null(climatedata) && is.null(parmal)){
-    fpath <- system.file("extdata", "init.R", package="MEEM")
-    cat("Creating some parameters required by MEEM...\n")
-    source(fpath)
-  }
-
-  if(!is.null(maldata) && !is.null(climatedata) && !is.null(parmal)){
-      return(MM_Inputs(parmal, maldata = maldata, climatedata = climatedata))
-  }
-}
+# ## temporary function for creating all parameters needed by Sheetal code
+# MM_Init<-function(parmal=NULL, maldata=NULL,climatedata=NULL){
+#   if(is.null(maldata) && is.null(climatedata) && is.null(parmal)){
+#     fpath <- system.file("extdata", "init.R", package="MEEM")
+#     cat("Creating some parameters required by MEEM...\n")
+#     source(fpath)
+#   }
+# 
+#   if(!is.null(maldata) && !is.null(climatedata) && !is.null(parmal)){
+#       return(MM_Inputs(parmal, maldata = maldata, climatedata = climatedata))
+#   }
+# }
 
 

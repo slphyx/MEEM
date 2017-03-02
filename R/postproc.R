@@ -1,7 +1,10 @@
 
 
 # POST PROCESSING function
-MM_Postproc <- function(parpro,out,tran) {
+MM_Postproc <- function(parpro,out,tran, npatch) {
+  
+  N<-npatch
+  
   # sensitivities
   sens_n_micro<-1-0.5*(1+erf((parpro$dl_micro-parpro$mn_n)/(parpro$sd_n*(2^0.5))))
   sens_n_RDT<-1-0.5*(1+erf((parpro$dl_RDT-parpro$mn_n)/(parpro$sd_n*(2^0.5))))

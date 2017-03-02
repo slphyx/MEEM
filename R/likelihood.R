@@ -114,7 +114,7 @@ MM_CalcLL<-function(parfit, odemethod = "lsoda", maldata, climatedata){
 ###
 ### for running the model
 ## taken from MM_CalcLL but the likielihood was removed
-MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile=NULL){
+MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile=NULL, parallel=FALSE){
   
   
   initodefit <- MM_GenInitOde(maldata = maldata)
@@ -125,29 +125,42 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
     parfit <- MM_readpars(parfile)
   }
   
+  if(parallel){
+    ncores<-parallel::detectCores()
+    cl <- makeCluster(ncores)
+    registerDoParallel(cl)
+  }
   
   # maldata = malaria prevalence data
   inp<-MM_Inputs(parfit, maldata = maldata, climatedata = climatedata)
-  transitfit <- MM_Malrates(initodefit,inp,parfit,0,ti)
+  #transitfit <- MM_Malrates(initodefit,inp,parfit,0,ti)
   
-  tmp1<-read.csv(inp$tempfile1)
-  tyears<-tmp1$tyears
-  dtout<-tmp1$dtout
+  tyears<-inp$tyears
+  dtout<-inp$dtout
+  transitionslength<-inp$transitionslength
   
   # # SOLVE THE ODEs and get output
   timesfit <- seq(0, tyears, by = dtout) # Model run time
   #Solve ODE
   outodefit <- ode(y = statefit, times = timesfit, func = MM_EpiModel, parms = parfit, method  = odemethod, input=inp)
   # Compute transitions at each time step
-  tranodefit<-matrix(0,nrow=length(outodefit[,1]),ncol=length(transitions))
-  for (ti in 1:(tsteps+1)){
+  tranodefit<-matrix(0,nrow=length(outodefit[,1]),ncol=transitionslength)
+  
+  tsteps<-inp$tsteps
+  V<-inp$V
+  for(ti in 1:(tsteps+1)){
     tranodefit[ti,]<-t(MM_Malrates(outodefit[ti,2:(1+V)],inp, parfit,0,ti))
   }
+  
+  
+  N<-inp$N
+  
   #Compute outputs
   #MM_Postproc <- function(parpro,out,tran)
-  ppoutfit<-MM_Postproc(parfit,outodefit,tranodefit)
+  ppoutfit<-MM_Postproc(parfit,outodefit,tranodefit,npatch=N)
+  startyear<-inp$startyear
   modeltimes<-outodefit[,1]+startyear
-  
+
   vmw_predf1_fit<-ppoutfit[,(2*N+1):(3*N)]
   vmw_predv1_fit<-ppoutfit[,(3*N+1):(4*N)]
   vmw_predmix_fit<-ppoutfit[,(4*N+1):(5*N)]

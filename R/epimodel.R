@@ -19,8 +19,10 @@ MM_EpiModel<-function(t,state, parode,input) # returns a list, need this for deS
          transitionsiu2<-transitions2[,2]
          transitionsiv1<-transitions2[,3]
          transitionsiv2<-transitions2[,4]
+         L<-input$L
+         N<-input$N
          
-         transit<-MM_Malrates(Z[1:V],input,parode,Z[V+1],ti)
+         transit<-MM_Malrates(Z[1:V],input,parode,Z[V+1],ti, parallel=TRUE)
 
          if (sum(is.na(transit))>0)  {
            stop("transit NA   ",Z[V+1], "                                      ",
