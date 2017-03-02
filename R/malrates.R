@@ -3,18 +3,32 @@
 # ************************************************************************************* #
 MM_Malrates <- function(x, input, parmal, t, ti) {
 
-  tempfile1<-input$tempfile1
-  tempfile2<-input$tempfile2
-  tmp1<-read.csv(tempfile1)
-  tmp2<-read.csv(tempfile2)
-  for(n in names(tmp1)){
-    txt<-paste0(n,"<-","tmp1$",n)
-    eval(parse(text = txt))
-  }
-  for(n in names(tmp2)){
-    txt<-paste0(n,"<-","tmp2$",n)
-    eval(parse(text = txt))
-  }
+  # tempfile1<-input$tempfile1
+  # tempfile2<-input$tempfile2
+  # tmp1<-read.csv(tempfile1)
+  # tmp2<-read.csv(tempfile2)
+  # for(n in names(tmp1)){
+  #   txt<-paste0(n,"<-","tmp1$",n)
+  #   eval(parse(text = txt))
+  # }
+  # for(n in names(tmp2)){
+  #   txt<-paste0(n,"<-","tmp2$",n)
+  #   eval(parse(text = txt))
+  # }
+  
+  N<-input$N
+  B<-input$B
+  A<-input$A
+  V<-input$V
+  L<-input$L
+  startyear<-input$startyear
+  dtout<-input$dtout
+  tsteps<-input$tsteps
+  tyears<-input$tyears
+  pvxy<-input$pvxy
+  yrprim<-input$yrprim
+  g6pDd<-input$g6pDd
+  
   
   varind<-matrix(0,nrow=B,ncol=N)
   traind<-matrix(0,nrow=A,ncol=N)
@@ -30,7 +44,6 @@ MM_Malrates <- function(x, input, parmal, t, ti) {
   falpop<-1:10
   vivpop<-11:23
   ############################
-
 
 
 

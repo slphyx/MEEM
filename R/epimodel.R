@@ -8,10 +8,18 @@ MM_EpiModel<-function(t,state, parode,input) # returns a list, need this for deS
          #   # define variables
          #   # ************************************************************************************* #
 
-         Z=state
-
+         Z<-state
+          
          # rates of change
          ti<-1
+         V<-input$V
+         transitions2<-input$transitions2
+         
+         transitionsiu1<-transitions2[,1]
+         transitionsiu2<-transitions2[,2]
+         transitionsiv1<-transitions2[,3]
+         transitionsiv2<-transitions2[,4]
+         
          transit<-MM_Malrates(Z[1:V],input,parode,Z[V+1],ti)
 
          if (sum(is.na(transit))>0)  {

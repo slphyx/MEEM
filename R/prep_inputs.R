@@ -46,13 +46,13 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
     yrprim<-pvxy[,6] #year primaquine adopted
     g6pDd<-pvxy[,7] # G6PDd def proportion
     
-    ##### export for using with malrates #####
-    forfile1 <- list(N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps,tyears=tyears)
-    forfile2 <- data.frame(pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd)
-    tempfile1 <- paste0(tempdir(),"/meemtempfile1.csv")
-    tempfile2 <- paste0(tempdir(),"/meemtempfile2.csv")
-    write.csv(forfile1, file = tempfile1)
-    write.csv(forfile2, file = tempfile2)
+    # ##### export for using with malrates #####
+    # forfile1 <- list(N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps,tyears=tyears)
+    # forfile2 <- data.frame(pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd)
+    # tempfile1 <- paste0(tempdir(),"/meemtempfile1.csv")
+    # tempfile2 <- paste0(tempdir(),"/meemtempfile2.csv")
+    # write.csv(forfile1, file = tempfile1)
+    # write.csv(forfile2, file = tempfile2)
     ##########################
     
     
@@ -293,7 +293,318 @@ MM_Inputs<-function(parmal, maldata = NULL, climatedata=NULL){
     }
   }
 
-  return(list(nun=nun,vnun=vnun, connect=connect, connect3=connect3,cov_vmw=cov_vmw,vmw_eff=vmw_eff, vmw_time=vmw_time, c_itn=c_itn, itn_time=itn_time, sens_vmw=sens_vmw, sens_his=sens_his, sens_oth=sens_oth, eln_inp=eln_inp, eln_t=eln_t, mineln=mineln, tempfile1=tempfile1, tempfile2=tempfile2))
+  # ************************************************************************************* #
+  # define transitions
+  # ************************************************************************************* #
+  # first transition is given without index
+  transitions =ssa.maketrans(V,rbind(varind[4,1], +1)) # birth mos patch 1
+  for (n in 1:N){
+    # Falciparum indep flows (1:50)
+    transitions[traind[1,n]]<-ssa.maketrans(V,rbind(varind[1,n],0,varind[1,n], +1)) # birth humans
+    transitions[traind[2,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[1,n],0)) # death S=1
+    transitions[traind[3,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1,varind[1,n],0)) # death In=2
+    transitions[traind[4,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1,varind[1,n],0)) # death Ia=3
+    transitions[traind[5,n]]<-ssa.maketrans(V,rbind(varind[4,n], -1,varind[1,n],0)) # death Ic=4
+    transitions[traind[6,n]]<-ssa.maketrans(V,rbind(varind[5,n], -1,varind[1,n],0)) # death Is=5
+    transitions[traind[7,n]]<-ssa.maketrans(V,rbind(varind[6,n], -1,varind[1,n],0)) # death To=6
+    transitions[traind[8,n]]<-ssa.maketrans(V,rbind(varind[7,n], -1,varind[1,n],0)) # death Tv=7
+    transitions[traind[9,n]]<-ssa.maketrans(V,rbind(varind[8,n], -1,varind[1,n],0)) # death Th=8
+    transitions[traind[10,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1,varind[1,n],0)) # death R=9
+    transitions[traind[11,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1,varind[1,n],0)) # death H=10
+    transitions[traind[12,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[2,n],+1)) # incidence S to In
+    transitions[traind[13,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[3,n],+1)) # incidence S to Ia
+    transitions[traind[14,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[4,n],+1)) # incidence S to Ic
+    transitions[traind[15,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[6,n],+1)) # incidence S to To
+    transitions[traind[16,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[7,n],+1)) # incidence S to Tv
+    transitions[traind[17,n]]<-ssa.maketrans(V,rbind(varind[1,n], -1,varind[8,n],+1)) # incidence S to Th
+    transitions[traind[18,n]]<-ssa.maketrans(V,rbind(varind[5,n], -1, varind[4,n], +1)) # recovery Is to Ic
+    transitions[traind[19,n]]<-ssa.maketrans(V,rbind(varind[4,n], -1, varind[3,n], +1)) # recovery Ic to Ia
+    transitions[traind[20,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1, varind[2,n], +1)) # recovery Ia to In
+    transitions[traind[21,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[9,n], +1)) # recovery In to R
+    transitions[traind[22,n]]<-ssa.maketrans(V,rbind(varind[6,n], -1, varind[10,n], +1)) # recovery To to H
+    transitions[traind[23,n]]<-ssa.maketrans(V,rbind(varind[7,n], -1, varind[10,n], +1)) # recovery Tv to H
+    transitions[traind[24,n]]<-ssa.maketrans(V,rbind(varind[8,n], -1, varind[10,n], +1)) # recovery Th to H
+    transitions[traind[25,n]]<-ssa.maketrans(V,rbind(varind[5,n], -1, varind[10,n], +1)) # recovery Is to H
+    transitions[traind[26,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[3,n], +1)) # incidence In to Ia
+    transitions[traind[27,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1, varind[4,n], +1)) # incidence Ia to Ic
+    transitions[traind[28,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1, varind[6,n], +1)) # incidence Ia to To
+    transitions[traind[29,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1, varind[7,n], +1)) # incidence Ia to Tv
+    transitions[traind[30,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1, varind[8,n], +1)) # incidence Ia to Th
+    transitions[traind[31,n]]<-ssa.maketrans(V,rbind(varind[4,n], -1, varind[5,n], +1)) # incidence Ic to Is
+    transitions[traind[32,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[4,n], +1)) # incidence In to Ic
+    transitions[traind[33,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[6,n], +1)) # incidence In to To
+    transitions[traind[34,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[7,n], +1)) # incidence In to Tv
+    transitions[traind[35,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[8,n], +1)) # incidence In to Th
+    transitions[traind[36,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[2,n], +1)) # incidence R to In
+    transitions[traind[37,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[3,n], +1)) # incidence R to Ia
+    transitions[traind[38,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[4,n], +1)) # incidence R to Ic
+    transitions[traind[39,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[6,n], +1)) # incidence R to To
+    transitions[traind[40,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[7,n], +1)) # incidence R to Tv
+    transitions[traind[41,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[8,n], +1)) # incidence R to Th
+    transitions[traind[42,n]]<-ssa.maketrans(V,rbind(varind[9,n], -1, varind[1,n], +1)) # loss imm R to S
+    transitions[traind[43,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[2,n], +1)) # incidence H to In
+    transitions[traind[44,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[3,n], +1)) # incidence H to Ia
+    transitions[traind[45,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[4,n], +1)) # incidence H to Ic
+    transitions[traind[46,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[6,n], +1)) # incidence H to To
+    transitions[traind[47,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[7,n], +1)) # incidence H to Tv
+    transitions[traind[48,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[8,n], +1)) # incidence H to Th
+    transitions[traind[49,n]]<-ssa.maketrans(V,rbind(varind[10,n], -1, varind[9,n], +1)) # loss HRP2 H to  R
+    transitions[traind[50,n]]<-ssa.maketrans(V,rbind(varind[5,n], -1, varind[1,n],0)) # death Is fatal malaria
+    transitions[traind[51,n]]<-ssa.maketrans(V,rbind(varind[6,n], -1, varind[3,n],+1)) # failed trt To to Ia
+    transitions[traind[52,n]]<-ssa.maketrans(V,rbind(varind[6,n], -1, varind[4,n],+1)) # failed trt To to Ic
+    transitions[traind[53,n]]<-ssa.maketrans(V,rbind(varind[6,n], -1, varind[8,n],+1)) # failed trt To to Th
+    transitions[traind[54,n]]<-ssa.maketrans(V,rbind(varind[7,n], -1, varind[3,n],+1)) # failed trt Tv to Ia
+    transitions[traind[55,n]]<-ssa.maketrans(V,rbind(varind[7,n], -1, varind[4,n],+1)) # failed trt Tv to Ic
+    transitions[traind[56,n]]<-ssa.maketrans(V,rbind(varind[7,n], -1, varind[7,n],+1)) # failed trt Tv to Th
+    transitions[traind[57,n]]<-ssa.maketrans(V,rbind(varind[8,n], -1, varind[3,n],+1)) # failed trt Th to Ia
+    transitions[traind[58,n]]<-ssa.maketrans(V,rbind(varind[8,n], -1, varind[4,n],+1)) # failed trt Th to Ic
+    transitions[traind[59,n]]<-ssa.maketrans(V,rbind(varind[8,n], -1, varind[8,n],+1)) # failed trt Th to Th
+    
+    #Vivax indep flows (51-138)
+    transitions[traind[60,n]]<-ssa.maketrans(V,rbind(varind[11,n],0,varind[11,n], +1)) # birth humans
+    transitions[traind[61,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[11,n],0)) # death S=11
+    transitions[traind[62,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1,varind[11,n],0)) # death In=12
+    transitions[traind[63,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1,varind[11,n],0)) # death Ia=13
+    transitions[traind[64,n]]<-ssa.maketrans(V,rbind(varind[14,n], -1,varind[11,n],0)) # death Ic=14
+    transitions[traind[65,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1,varind[11,n],0)) # death Is=15
+    transitions[traind[66,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1,varind[11,n],0)) # death To=16
+    transitions[traind[67,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1,varind[11,n],0)) # death Tv=17
+    transitions[traind[68,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1,varind[11,n],0)) # death Th=18
+    transitions[traind[69,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1,varind[11,n],0)) # death R=19
+    transitions[traind[70,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1,varind[11,n],0)) # death L=20
+    transitions[traind[71,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1,varind[11,n],0)) # death Togd=21
+    transitions[traind[72,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1,varind[11,n],0)) # death Tvgd=22
+    transitions[traind[73,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1,varind[11,n],0)) # death Thgd=23
+    transitions[traind[74,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[12,n],+1)) # incidence S to In
+    transitions[traind[75,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[13,n],+1)) # incidence S to Ia
+    transitions[traind[76,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[14,n],+1)) # incidence S to Ic
+    transitions[traind[77,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[16,n],+1)) # incidence S to To
+    transitions[traind[78,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[17,n],+1)) # incidence S to Tv
+    transitions[traind[79,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[18,n],+1)) # incidence S to Th
+    transitions[traind[80,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[21,n],+1)) # incidence S to Togd
+    transitions[traind[81,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[22,n],+1)) # incidence S to Tvgd
+    transitions[traind[82,n]]<-ssa.maketrans(V,rbind(varind[11,n], -1,varind[23,n],+1)) # incidence S to Thgd
+    transitions[traind[83,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1, varind[14,n],+1)) # recovery Is to Ic
+    transitions[traind[84,n]]<-ssa.maketrans(V,rbind(varind[14,n], -1, varind[13,n],+1)) # recovery Ic to Ia
+    transitions[traind[85,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[12,n],+1)) # recovery Ia to In
+    transitions[traind[86,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[19,n],+1)) # recovery In to R
+    transitions[traind[87,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[20,n],+1)) # recovery In to L
+    transitions[traind[88,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[19,n], +1)) # recovery To to R
+    transitions[traind[89,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[19,n], +1)) # recovery Tv to R
+    transitions[traind[90,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[19,n], +1)) # recovery Th to R
+    transitions[traind[91,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[19,n], +1)) # recovery Togd to R
+    transitions[traind[92,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[19,n], +1)) # recovery Tvgd to R
+    transitions[traind[93,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[19,n], +1)) # recovery Thgd to R
+    transitions[traind[94,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1, varind[19,n], +1)) # recovery Is to R
+    transitions[traind[95,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[20,n], +1)) # recovery To to L
+    transitions[traind[96,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[20,n], +1)) # recovery Tv to L
+    transitions[traind[97,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[20,n], +1)) # recovery Th to L
+    transitions[traind[98,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[20,n], +1)) # recovery Togd to L
+    transitions[traind[99,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[20,n], +1)) # recovery Tvgd to L
+    transitions[traind[100,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[20,n], +1)) # recovery Thgd to L
+    transitions[traind[101,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1, varind[20,n], +1)) # recovery Is to L
+    transitions[traind[102,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[13,n], +1)) # incidence In to Ia
+    transitions[traind[103,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[14,n], +1)) # incidence In to Ic
+    transitions[traind[104,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[16,n], +1)) # incidence In to To
+    transitions[traind[105,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[17,n], +1)) # incidence In to Tv
+    transitions[traind[106,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[18,n], +1)) # incidence In to Th
+    transitions[traind[107,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[21,n], +1)) # incidence In to Togd
+    transitions[traind[108,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[22,n], +1)) # incidence In to Tvgd
+    transitions[traind[109,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[23,n], +1)) # incidence In to Thgd
+    transitions[traind[110,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[14,n], +1)) # incidence Ia to Ic
+    transitions[traind[111,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[16,n], +1)) # incidence Ia to To
+    transitions[traind[112,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[17,n], +1)) # incidence Ia to Tv
+    transitions[traind[113,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[18,n], +1)) # incidence Ia to Th
+    transitions[traind[114,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[21,n], +1)) # incidence Ia to Togd
+    transitions[traind[115,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[22,n], +1)) # incidence Ia to Tvgd
+    transitions[traind[116,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[23,n], +1)) # incidence Ia to Thgd
+    transitions[traind[117,n]]<-ssa.maketrans(V,rbind(varind[14,n], -1, varind[15,n], +1)) # incidence Ic to Is
+    transitions[traind[118,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[12,n], +1)) # incidence R to In
+    transitions[traind[119,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[13,n], +1)) # incidence R to Ia
+    transitions[traind[120,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[14,n], +1)) # incidence R to Ic
+    transitions[traind[121,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[16,n], +1)) # incidence R to To
+    transitions[traind[122,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[17,n], +1)) # incidence R to Tv
+    transitions[traind[123,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[18,n], +1)) # incidence R to Th
+    transitions[traind[124,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[21,n], +1)) # incidence R to Togd
+    transitions[traind[125,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[22,n], +1)) # incidence R to Tvgd
+    transitions[traind[126,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[23,n], +1)) # incidence R to Thgd
+    transitions[traind[127,n]]<-ssa.maketrans(V,rbind(varind[19,n], -1, varind[11,n], +1)) # loss imm R to S
+    transitions[traind[128,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[12,n], +1)) # incidence L to In
+    transitions[traind[129,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[13,n], +1)) # incidence L to Ia
+    transitions[traind[130,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[14,n], +1)) # incidence L to Ic
+    transitions[traind[131,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[16,n], +1)) # incidence L to To
+    transitions[traind[132,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[17,n], +1)) # incidence L to Tv
+    transitions[traind[133,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[18,n], +1)) # incidence L to Th
+    transitions[traind[134,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[21,n], +1)) # incidence L to Togd
+    transitions[traind[135,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[22,n], +1)) # incidence L to Tvgd
+    transitions[traind[136,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[23,n], +1)) # incidence L to Thgd
+    transitions[traind[137,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[12,n], +1)) # relapse L to In
+    transitions[traind[138,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[13,n], +1)) # relapse L to Ia
+    transitions[traind[139,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[14,n], +1)) # relapse L to Ic
+    transitions[traind[140,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[16,n], +1)) # relapse L to To
+    transitions[traind[141,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[17,n], +1)) # relapse L to Tv
+    transitions[traind[142,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[18,n], +1)) # relapse L to Th
+    transitions[traind[143,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[21,n], +1)) # relapse L to Togd
+    transitions[traind[144,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[22,n], +1)) # relapse L to Tvgd
+    transitions[traind[145,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[23,n], +1)) # relapse L to Thgd
+    transitions[traind[146,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[11,n], +1)) # death of hypnozoites L to S
+    transitions[traind[147,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1, varind[11,n],0)) # death Is fatal malaria
+    
+    transitions[traind[148,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[13,n], +1)) # failed trt To to Ia
+    transitions[traind[149,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[14,n], +1)) # failed trt To to Ic
+    transitions[traind[150,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[18,n], +1)) # failed trt To to Th
+    
+    transitions[traind[151,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[13,n], +1)) # failed trt Tv to Ia
+    transitions[traind[152,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[14,n], +1)) # failed trt Tv to Ic
+    transitions[traind[153,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[17,n], +1)) # failed trt Tv to Tv
+    
+    transitions[traind[154,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[13,n], +1)) # failed trt Th to Ia
+    transitions[traind[155,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[14,n], +1)) # failed trt Th to Ic
+    transitions[traind[156,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[18,n], +1)) # failed trt Th to Th
+    
+    transitions[traind[157,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[13,n], +1)) # failed trt Togd to Ia
+    transitions[traind[158,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[14,n], +1)) # failed trt Togd to Ic
+    transitions[traind[159,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[23,n], +1)) # failed trt Togd to Thgd
+    
+    transitions[traind[160,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[13,n], +1)) # failed trt Tvgd to Ia
+    transitions[traind[161,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[14,n], +1)) # failed trt Tvgd to Ic
+    transitions[traind[162,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[22,n], +1)) # failed trt Tvgd to Tvgd
+    
+    transitions[traind[163,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[13,n], +1)) # failed trt Thgd to Ia
+    transitions[traind[164,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[14,n], +1)) # failed trt Thgd to Ic
+    transitions[traind[165,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[23,n], +1)) # failed trt Thgd to Thgd
+    
+    #Entanglements (166-)
+    transitions[traind[166,n]]<-ssa.maketrans(V,rbind(varind[2,n], -1, varind[10,n],+1)) # dual trt Fal In to H
+    transitions[traind[167,n]]<-ssa.maketrans(V,rbind(varind[3,n], -1, varind[10,n],+1)) # dual trt Fal Ia to H
+    transitions[traind[168,n]]<-ssa.maketrans(V,rbind(varind[4,n], -1, varind[8,n],+1)) # dual trt Fal Ic to H
+    transitions[traind[169,n]]<-ssa.maketrans(V,rbind(varind[5,n], -1, varind[6,n],+1)) # dual trt Fal Is to H
+    transitions[traind[170,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[19,n],+1)) # dual trt Viv In to R
+    transitions[traind[171,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[19,n],+1)) # dual trt Viv Ia to R
+    transitions[traind[172,n]]<-ssa.maketrans(V,rbind(varind[14,n], -1, varind[19,n],+1)) # dual trt Viv Ic to R
+    transitions[traind[173,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1, varind[19,n],+1)) # dual trt Viv Is to R
+    transitions[traind[174,n]]<-ssa.maketrans(V,rbind(varind[12,n], -1, varind[20,n],+1)) # dual trt Viv In to L
+    transitions[traind[175,n]]<-ssa.maketrans(V,rbind(varind[13,n], -1, varind[20,n],+1)) # dual trt Viv Ia to L
+    transitions[traind[176,n]]<-ssa.maketrans(V,rbind(varind[14,n], -1, varind[20,n],+1)) # dual trt Viv Ic to L
+    transitions[traind[177,n]]<-ssa.maketrans(V,rbind(varind[15,n], -1, varind[20,n],+1)) # dual trt Viv Is to L
+    transitions[traind[178,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[19,n],+1)) # primaquine recovery To to R
+    transitions[traind[179,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[19,n],+1)) # primaquine recovery Tv to R
+    transitions[traind[180,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[19,n],+1)) # primaquine recovery Th to R
+    
+    transitions[traind[181,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[20,n],+1)) # primaquine recovery To to L
+    transitions[traind[182,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[20,n],+1)) # primaquine recovery Tv to L
+    transitions[traind[183,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[20,n],+1)) # primaquine recovery Th to L
+    transitions[traind[184,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[19,n],+1)) # primaquine recovery Togd to R
+    transitions[traind[185,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[19,n],+1)) # primaquine recovery Tvgd to R
+    transitions[traind[186,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[19,n],+1)) # primaquine recovery Thgd to R
+    transitions[traind[187,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[20,n],+1)) # primaquine recovery Togd for Gdef to L
+    transitions[traind[188,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[20,n],+1)) # primaquine recovery for Gdef Tvgd to L
+    transitions[traind[189,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[20,n],+1)) # primaquine recovery for Gdef Thgd to L
+    transitions[traind[190,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[19,n],+1)) # primaquine recovery Togd to R
+    transitions[traind[191,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[19,n],+1)) # primaquine recovery Tvgd to R
+    transitions[traind[192,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[19,n],+1)) # primaquine recovery Thgd to R
+    transitions[traind[193,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[20,n],+1)) # primaquine recovery Togd for Gdef to L
+    transitions[traind[194,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[20,n],+1)) # primaquine recovery for Gdef Tvgd to L
+    transitions[traind[195,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[20,n],+1)) # primaquine recovery for Gdef Thgd to L
+    transitions[traind[196,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[19,n],+1)) # masked ACT recovery To to R
+    transitions[traind[197,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[19,n],+1)) # masked ACT recovery Tv to R
+    transitions[traind[198,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[19,n],+1)) # masked ACT recovery Th to R
+    transitions[traind[199,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[20,n],+1)) # masked ACT recovery To to L
+    transitions[traind[200,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[20,n],+1)) # masked ACT recovery Tv to L
+    transitions[traind[201,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[20,n],+1)) # masked ACT recovery Th to L
+    transitions[traind[202,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[19,n],+1)) # masked ACT recovery Togd to R
+    transitions[traind[203,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[19,n],+1)) # masked ACT recovery Tvgd to R
+    transitions[traind[204,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[19,n],+1)) # masked ACT recovery Thgd to R
+    transitions[traind[205,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[20,n],+1)) # masked ACT recovery Togd for Gdef to L
+    transitions[traind[206,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[20,n],+1)) # masked ACT recovery for Gdef Tvgd to L
+    transitions[traind[207,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[20,n],+1)) # masked ACT recovery for Gdef Thgd to L
+    
+    transitions[traind[208,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[12,n], +1)) # relapse L to In + triggering
+    transitions[traind[209,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[13,n], +1)) # relapse L to Ia+ triggering
+    transitions[traind[210,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[14,n], +1)) # relapse L to Ic+ triggering
+    transitions[traind[211,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[16,n], +1)) # relapse L to To+ triggering
+    transitions[traind[212,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[17,n], +1)) # relapse L to Tv+ triggering
+    transitions[traind[213,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[18,n], +1)) # relapse L to Th+ triggering
+    transitions[traind[214,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[21,n], +1)) # relapse L to Togd+ triggering
+    transitions[traind[215,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[22,n], +1)) # relapse L to Tvgd+ triggering
+    transitions[traind[216,n]]<-ssa.maketrans(V,rbind(varind[20,n], -1, varind[23,n], +1)) # relapse L to Thgd+ triggering
+    
+    #failed treatments
+    transitions[traind[217,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[13,n], +1)) # primaquine failed trt To to Ia
+    transitions[traind[218,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[14,n], +1)) # primaquine failed trt To to Ic
+    transitions[traind[219,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[18,n], +1)) # primaquine failed trt To to Th
+    
+    transitions[traind[220,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[13,n], +1)) # primaquine failed trt Tv to Ia
+    transitions[traind[221,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[14,n], +1)) # primaquine failed trt Tv to Ic
+    transitions[traind[222,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[17,n], +1)) # primaquine failed trt Tv to Tv
+    
+    transitions[traind[223,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[13,n], +1)) # primaquine failed trt Th to Ia
+    transitions[traind[224,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[14,n], +1)) # primaquine failed trt Th to Ic
+    transitions[traind[225,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[18,n], +1)) # primaquine failed trt Th to Th
+    
+    transitions[traind[226,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[13,n], +1)) # masked act failed trt To to Ia
+    transitions[traind[227,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[14,n], +1)) # masked act failed trt To to Ic
+    transitions[traind[228,n]]<-ssa.maketrans(V,rbind(varind[16,n], -1, varind[18,n], +1)) # masked act failed trt To to Th
+    
+    transitions[traind[229,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[13,n], +1)) # masked act failed trt Tv to Ia
+    transitions[traind[230,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[14,n], +1)) # masked act failed trt Tv to Ic
+    transitions[traind[231,n]]<-ssa.maketrans(V,rbind(varind[17,n], -1, varind[17,n], +1)) # masked act failed trt Tv to Tv
+    
+    transitions[traind[232,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[13,n], +1)) # masked act failed trt Th to Ia
+    transitions[traind[233,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[14,n], +1)) # masked act failed trt Th to Ic
+    transitions[traind[234,n]]<-ssa.maketrans(V,rbind(varind[18,n], -1, varind[18,n], +1)) # masked act failed trt Th to Th
+    
+    transitions[traind[235,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[13,n], +1)) # masked failed trt Togd to Ia
+    transitions[traind[236,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[14,n], +1)) # masked failed trt Togd to Ic
+    transitions[traind[237,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[23,n], +1)) # masked failed trt Togd to Thgd
+    
+    transitions[traind[238,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[13,n], +1)) # masked failed trt Tvgd to Ia
+    transitions[traind[239,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[14,n], +1)) # masked failed trt Tvgd to Ic
+    transitions[traind[240,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[22,n], +1)) # masked failed trt Tvgd to Tvgd
+    
+    transitions[traind[241,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[13,n], +1)) # masked failed trt Thgd to Ia
+    transitions[traind[242,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[14,n], +1)) # masked failed trt Thgd to Ic
+    transitions[traind[243,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[23,n], +1)) # masked failed trt Thgd to Thgd
+    
+    transitions[traind[244,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[13,n], +1)) # test + ACT failed trt Togd to Ia
+    transitions[traind[245,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[14,n], +1)) # test + ACT failed trt Togd to Ic
+    transitions[traind[246,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[23,n], +1)) # test + ACT failed trt Togd to Thgd
+    
+    transitions[traind[247,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[13,n], +1)) # test + ACT failed trt Tvgd to Ia
+    transitions[traind[248,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[14,n], +1)) # test + ACT failed trt Tvgd to Ic
+    transitions[traind[249,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[22,n], +1)) # test + ACT failed trt Tvgd to Tvgd
+    
+    transitions[traind[250,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[13,n], +1)) # test + ACT failed trt Thgd to Ia
+    transitions[traind[251,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[14,n], +1)) # test + ACT failed trt Thgd to Ic
+    transitions[traind[252,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[23,n], +1)) # test + ACT failed trt Thgd to Thgd
+    
+    transitions[traind[253,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[13,n], +1)) # test - primaquine failed trt Togd to Ia
+    transitions[traind[254,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[14,n], +1)) # test - primaquine failed trt Togd to Ic
+    transitions[traind[255,n]]<-ssa.maketrans(V,rbind(varind[21,n], -1, varind[23,n], +1)) # test - primaquine failed trt Togd to Thgd
+    
+    transitions[traind[256,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[13,n], +1)) # test - primaquine failed trt Tvgd to Ia
+    transitions[traind[257,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[14,n], +1)) # test - primaquine failed trt Tvgd to Ic
+    transitions[traind[258,n]]<-ssa.maketrans(V,rbind(varind[22,n], -1, varind[22,n], +1)) # test - primaquine failed trt Tvgd to Tvgd
+    
+    transitions[traind[259,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[13,n], +1)) # test - primaquine failed trt Thgd to Ia
+    transitions[traind[260,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[14,n], +1)) # test - primaquine failed trt Thgd to Ic
+    transitions[traind[261,n]]<-ssa.maketrans(V,rbind(varind[23,n], -1, varind[23,n], +1)) # test - primaquine failed trt Thgd to Thgd
+    
+  }
+  #Alternate formulation of transitions matrix (used in epimodel function)
+  transitions2<-NULL
+  for (i in 1: length(transitions)){
+    transitions2<-rbind(transitions2,cbind(as.integer(names(transitions[[i]]))[1],as.integer(names(transitions[[i]]))[2], transitions[[i]][1], transitions[[i]][2]))
+  }
+  
+    
+  
+  return(list(nun=nun,vnun=vnun, connect=connect, connect3=connect3,cov_vmw=cov_vmw,vmw_eff=vmw_eff, 
+              vmw_time=vmw_time, c_itn=c_itn, itn_time=itn_time, sens_vmw=sens_vmw, sens_his=sens_his, 
+              sens_oth=sens_oth, eln_inp=eln_inp, eln_t=eln_t, mineln=mineln, 
+              N=N,B=B,A=A,V=V,L=L,startyear=startyear,dtout=dtout,tsteps=tsteps,
+              tyears=tyears,pvxy=pvxy, yrprim=yrprim, g6pDd=g6pDd,transitions2=transitions2
+              ))
 }
 #######################################################################
 
