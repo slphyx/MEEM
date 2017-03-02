@@ -8,6 +8,9 @@ MM_Postproc <- function(parpro,out,tran, npatch) {
   falpop<-1:10
   vivpop<-11:23
   
+  B<-23   # number of variables per patch
+  A<-261  # number of transitions per patch
+  
   # ************************************************************************************* #
   # define indices
   # ************************************************************************************* #
