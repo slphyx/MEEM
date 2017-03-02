@@ -5,6 +5,25 @@ MM_Postproc <- function(parpro,out,tran, npatch) {
   
   N<-npatch
   
+  falpop<-1:10
+  vivpop<-11:23
+  
+  # ************************************************************************************* #
+  # define indices
+  # ************************************************************************************* #
+  varind<-matrix(0,nrow=B,ncol=N)
+  traind<-matrix(0,nrow=A,ncol=N)
+  for (n in 1:N){
+    for (b in 1:B){
+      varind[b,n]<-(n-1)*B+b
+    }
+    for (a in 1:A){
+      traind[a,n]<-(n-1)*A+a
+    }
+  }
+  
+  
+  
   # sensitivities
   sens_n_micro<-1-0.5*(1+erf((parpro$dl_micro-parpro$mn_n)/(parpro$sd_n*(2^0.5))))
   sens_n_RDT<-1-0.5*(1+erf((parpro$dl_RDT-parpro$mn_n)/(parpro$sd_n*(2^0.5))))
