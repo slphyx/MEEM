@@ -22,7 +22,7 @@ MM_EpiModel<-function(t,state, parode,input) # returns a list, need this for deS
          L<-input$L
          N<-input$N
          
-         transit<-MM_Malrates(Z[1:V],input,parode,Z[V+1],ti, parallel=TRUE)
+         transit<-MM_Malrates(Z[1:V],input,parode,Z[V+1],ti)
 
          if (sum(is.na(transit))>0)  {
            stop("transit NA   ",Z[V+1], "                                      ",
