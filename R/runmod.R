@@ -38,6 +38,9 @@ MM_CalcLL<-function(parfit, odemethod = "lsoda", maldata, climatedata){
   #
   # statefit <- c(initodefit,0)
   
+  
+  
+  
   initodefit <- MM_GenInitOde(maldata = maldata)
   statefit <- c(initodefit,0)
   ti<-1
@@ -182,10 +185,16 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
   severe_predv1_fit<-ppoutfit[,(14*N+1):(15*N)]
   severe_predmix_fit<-ppoutfit[,(15*N+1):(16*N)]
   
-  return(list(vmw_predf1_fit,vmw_predv1_fit,vmw_predmix_fit,
-              his_predf1_fit, his_predv1_fit, his_predmix_fit,
-              fatal_pred_fit,
-              severe_predf1_fit,severe_predv1_fit, severe_predmix_fit
+  return(list(vmw_predf1_fit=vmw_predf1_fit,
+              vmw_predv1_fit=vmw_predv1_fit,
+              vmw_predmix_fit=vmw_predmix_fit,
+              his_predf1_fit=his_predf1_fit, 
+              his_predv1_fit=his_predv1_fit, 
+              his_predmix_fit=his_predmix_fit,
+              fatal_pred_fit=fatal_pred_fit,
+              severe_predf1_fit=severe_predf1_fit,
+              severe_predv1_fit=severe_predv1_fit, 
+              severe_predmix_fit=severe_predmix_fit
   ))
 }
 
