@@ -1,8 +1,8 @@
 # ************************************************************************************* #
 # Function to calculate transition rates, given variables and parameters
 # ************************************************************************************* #
-MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
-
+MM_Malrates <- function(x, input, parmal, t, ti, parallel=FALSE) {
+  
   # tempfile1<-input$tempfile1
   # tempfile2<-input$tempfile2
   # tmp1<-read.csv(tempfile1)
@@ -44,9 +44,9 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
   falpop<-1:10
   vivpop<-11:23
   ############################
-
-
-
+  
+  
+  
   t_internal<-(ti-1)*dtout+t+startyear
   #Set up matrices
   seas<-c(rep(1,N)) # seasonality
@@ -62,11 +62,11 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
   tauo<-c(rep(0,N)) #Treatment with other
   tauh<-c(rep(0,N)) #Treatment with HIS
   tauv<-c(rep(0,N)) #Treatment with VMW
-
+  
   eln<-approx(input$eln_t,input$eln_inp,xout=t_internal)$y
   
   if(parallel){
-    foreach(n = 1:N)%dopar%{
+    tranrate<-foreach(n = 1:N, .combine = rbind)%dopar%{
       seas[n]<-1+eln*parmal$amp[n]*cos(2*pi*(t_internal-parmal$phi[n])) # seasonal forcing signal
       popf[n]<-sum(x[varind[falpop,n]]) # list of the variable indices for the human population
       popv[n]<-sum(x[varind[vivpop,n]]) # list of the variable indices for the human population
@@ -87,7 +87,7 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
       t3=0
       if (t_internal>yrprim[n]){t3=1} #start radical cure from policy start date
       
-      tranrate[n,]<-c(      #falciparum
+      c(      #falciparum
         parmal$demog*popf[n]+(1-parmal$tausev)*parmal$pmort*parmal$nuq*x[varind[5,n]]+parmal$tausev*parmal$nuq*parmal$pmortt*x[varind[5,n]], # rate of birth 1
         parmal$demog*x[varind[1,n]],       # rate of death of S                                      2
         parmal$demog*x[varind[2,n]],       # rate of death of In                                     3
@@ -392,20 +392,20 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
       itn[n]<-approx(input$itn_time,input$c_itn[,n],xout=t_internal)$y
       foif[n]<-sum(input$connect[n,]*seas[n]*((((1-itn[n])*parmal$bites)^2*parmal$prob_m*parmal$prob_h*(parmal$Pmaxf[n])/popf[n]*(parmal$zeta_n*x[varind[2,n]]+parmal$zeta_a*x[varind[3,n]]+x[varind[4,n]]+x[varind[5,n]])/sum(input$connect[n,]*popf))/((1-itn[n])*parmal$bites*parmal$prob_h*parmal$Pmaxf[n]/popf[n]+parmal$delta_m)*(parmal$gamma_m/(parmal$gamma_m+parmal$delta_m))))
       foiv[n]<-sum(input$connect[n,]*seas[n]*((((1-itn[n])*parmal$bites)^2*parmal$prob_m*parmal$vprob_h*(parmal$Pmaxv[n])/popv[n]*(parmal$vzeta_n*x[varind[12,n]]+parmal$vzeta_a*x[varind[13,n]]+x[varind[14,n]]+x[varind[15,n]])/sum(input$connect[n,]*popv))/((1-itn[n])*parmal$bites*parmal$vprob_h*parmal$Pmaxv[n]/popv[n]+parmal$delta_m)*(parmal$vgamma_m/(parmal$vgamma_m+parmal$delta_m))))
-  
+      
       foifa<-(1/(1/(foif[n])+1/parmal$gamma_h+1/parmal$gamma_m))
       foiva<-(1/(1/(foiv[n])+1/parmal$vgamma_h+1/parmal$vgamma_m))
-  
+      
       c_vmw[n]<-approx(input$vmw_time,input$cov_vmw[,n],xout=t_internal)$y
       veff[n]<-approx(input$vmw_time,input$vmw_eff[,n],xout=t_internal)$y
       tau[n]<-c_vmw[n]*input$sens_vmw*veff[n]+(1-c_vmw[n]*veff[n])*input$sens_his*parmal$eff_his+(1-c_vmw[n]*veff[n]-(1-c_vmw[n]*veff[n])*parmal$eff_his)*input$sens_oth*parmal$eff_oth #prob of treatment
       tauo[n]<-(1-c_vmw[n]*veff[n]-(1-c_vmw[n]*veff[n])*parmal$eff_his)*input$sens_oth*parmal$eff_oth #Prob treated by Other
       tauh[n]<-(1-c_vmw[n]*veff[n])*input$sens_his*parmal$eff_his #Prob treated by HIS
       tauv[n]<-c_vmw[n]*veff[n]*input$sens_vmw  #Prob treated by VMW
-  
+      
       t3=0
       if (t_internal>yrprim[n]){t3=1} #start radical cure from policy start date
-  
+      
       tranrate[n,]<-c(      #falciparum
         parmal$demog*popf[n]+(1-parmal$tausev)*parmal$pmort*parmal$nuq*x[varind[5,n]]+parmal$tausev*parmal$nuq*parmal$pmortt*x[varind[5,n]], # rate of birth 1
         parmal$demog*x[varind[1,n]],       # rate of death of S                                      2
@@ -466,7 +466,7 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
         (1-parmal$ptfc)*parmal$ptf*parmal$nut*x[varind[8,n]],          # failure Th to Ia             57
         parmal$ptfc*(1-parmal$ptftr)*parmal$ptf*parmal$nut*x[varind[8,n]],  # failure Th to Ic        58
         parmal$ptfc*parmal$ptftr*parmal$ptf*parmal$nut*x[varind[8,n]],    # failure Th to Th          59
-  
+        
         #vivax
         parmal$demog*popv[n]+(1-parmal$vtausev)*parmal$vpmort*parmal$vnuq*x[varind[15,n]]+parmal$vtausev*parmal$vpmortt*parmal$vnuq*x[varind[15,n]], # rate of birth 60
         parmal$demog*x[varind[11,n]],       # rate of death of S                                      61
@@ -556,31 +556,31 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
         (1- parmal$t2)*parmal$propgd[n]*tauh[n]*parmal$vpr*parmal$vprel*parmal$vrel*x[varind[10,n]],        #       relapse L to Thgd 145
         parmal$vkappa*x[varind[10,n]],                      #        death of hypnozoites L to  S            146
         (1-parmal$vtausev)*parmal$vpmort*parmal$vnuq*x[varind[15,n]]+parmal$vtausev*parmal$vpmortt*parmal$vnuq*x[varind[15,n]],   # death untreated+treated Is  147
-  
+        
         (1-t3)*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[16,n]],                      # failed trt To to Ia         148
         (1-t3)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[16,n]],        # failed trt To to Ic         149
         (1-t3)*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[16,n]],            # failed trt To to Th         150
-  
+        
         (1-t3)*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[17,n]],                      # failed trt Tv to Ia         151
         (1-t3)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[17,n]],        # failed trt Tv to Ic         152
         (1-t3)*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[17,n]],            # failed trt Tv to Tv         153
-  
+        
         (1-t3)*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[18,n]],                      # failed trt Th to Ia         154
         (1-t3)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[18,n]],        # failed trt Th to Ic         155
         (1-t3)*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[18,n]],            # failed trt Th to Th         156
-  
+        
         (1-t3)*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[21,n]],                    # failed trt Togd to Ia         157
         (1-t3)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[21,n]],      # failed trt Togd to Ic         158
         (1-t3)*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[21,n]],          # failed trt Togd to Thgd       159
-  
+        
         (1-t3)*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[22,n]],                    # failed trt Tvgd to Ia         160
         (1-t3)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[22,n]],      # failed trt Tvgd to Ic         161
         (1-t3)*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[22,n]],        # failed trt Tvgd to Tvgd         162
-  
+        
         (1-t3)*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[23,n]],                    # failed trt Thgd to Ia         163
         (1-t3)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[23,n]],      # failed trt Thgd to Ic         164
         (1-t3)*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[23,n]],        # failed trt Thgd to Thgd         165
-  
+        
         #Entanglements (dual treat)
         parmal$t1*(1-parmal$ptf)*parmal$nut*x[varind[2,n]]*(x[varind[16,n]]+x[varind[17,n]]+x[varind[18,n]]+x[varind[21,n]]+x[varind[22,n]]+x[varind[23,n]])/popv[n],                     # dual trt Fal In to H  166
         parmal$t1*(1-parmal$ptf)*parmal$nut*x[varind[3,n]]*(x[varind[16,n]]+x[varind[17,n]]+x[varind[18,n]]+x[varind[21,n]]+x[varind[22,n]]+x[varind[23,n]])/popv[n],                     # dual trt Fal Ia to H  167
@@ -594,28 +594,28 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
         parmal$t1*parmal$vph*(1-parmal$vptf)*parmal$vnut*x[varind[13,n]]*(x[varind[6,n]]+x[varind[7,n]]+x[varind[8,n]])/popf[n],          # dual trt Viv Ia to L  175
         parmal$t1*parmal$vph*(1-parmal$vptf)*parmal$vnut*x[varind[14,n]]*(x[varind[6,n]]+x[varind[7,n]]+x[varind[8,n]])/popf[n],          # dual trt Viv Ic to L  176
         parmal$t1*parmal$vph*(1-parmal$vptf)*parmal$vnut*x[varind[15,n]]*(x[varind[6,n]]+x[varind[7,n]]+x[varind[8,n]])/popf[n],           # dual trt Viv Is to L 177
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vphprim)*(1-parmal$vptfp)*parmal$vnup*x[varind[16,n]],                               # primaquine recovery To to R     178
         t3*(1-parmal$mask)*(1-parmal$vphprim)*(1-parmal$vptfp)*parmal$vnup*x[varind[17,n]],                              #primaquine recovery Tv to R       179
         t3*(1-parmal$mask)*(1-parmal$vphprim)*(1-parmal$vptfp)*parmal$vnup*x[varind[18,n]],                             #primaquine recovery Th to R        180
         t3*(1-parmal$mask)*parmal$vphprim*(1-parmal$vptfp)*parmal$vnup*x[varind[16,n]],                               # primaquine recovery To to L         181
         t3*(1-parmal$mask)*parmal$vphprim*(1-parmal$vptfp)*parmal$vnup*x[varind[17,n]],                              #primaquine recovery Tv to L           182
         t3*(1-parmal$mask)*parmal$vphprim*(1-parmal$vptfp)*parmal$vnup*x[varind[18,n]],                             #primaquine recovery Th to L            183
-  
+        
         t3*(1-parmal$mask)*(parmal$sensgd*parmal$vnut*(1-parmal$vph)*(1-parmal$vptf))*x[varind[21,n]],                  # test + act recovery Togd to R     184
         t3*(1-parmal$mask)*(parmal$sensgd*parmal$vnut*(1-parmal$vph)*(1-parmal$vptf))*x[varind[22,n]],                 #test + act recovery Tvgd to R       185
         t3*(1-parmal$mask)*(parmal$sensgd*parmal$vnut*(1-parmal$vph)*(1-parmal$vptf))*x[varind[23,n]],                #test + act recovery Thgd to R        186
         t3*(1-parmal$mask)*(parmal$sensgd*parmal$vnut*parmal$vph*(1-parmal$vptf))*x[varind[21,n]],             # test + act recovery of GDef Togd to L      187
         t3*(1-parmal$mask)*(parmal$sensgd*parmal$vnut*parmal$vph*(1-parmal$vptf))*x[varind[22,n]],            #test + act recovery of GDef Tvgd to L        188
         t3*(1-parmal$mask)*(parmal$sensgd*parmal$vnut*parmal$vph*(1-parmal$vptf))*x[varind[23,n]],           #test + act recovery of GDef Thgd to L         189
-  
+        
         t3*(1-parmal$mask)*((1-parmal$sensgd)*(1-parmal$vptfp)*(1-parmal$vphprim)*parmal$vnup)*x[varind[21,n]],        # test - primaquine recovery Togd to R     190
         t3*(1-parmal$mask)*((1-parmal$sensgd)*(1-parmal$vptfp)*(1-parmal$vphprim)*parmal$vnup)*x[varind[22,n]],      # test - primaquine recovery Tvgd to R       191
         t3*(1-parmal$mask)*((1-parmal$sensgd)*(1-parmal$vptfp)*(1-parmal$vphprim)*parmal$vnup)*x[varind[23,n]],      #test - primaquine recovery Thgd to R        192
         t3*(1-parmal$mask)*((1-parmal$sensgd)*parmal$vphprim*(1-parmal$vptfp)*parmal$vnup)*x[varind[21,n]],    # test - primaquine recovery of GDef Togd to L     193
         t3*(1-parmal$mask)*((1-parmal$sensgd)*parmal$vphprim*(1-parmal$vptfp)*parmal$vnup)*x[varind[22,n]],   #test - primaquine recovery of GDef Tvgd to L       194
         t3*(1-parmal$mask)*((1-parmal$sensgd)*parmal$vphprim*(1-parmal$vptfp)*parmal$vnup)*x[varind[23,n]],  #test - primaquine recovery of GDef Thgd to L        195
-  
+        
         t3*parmal$mask*(1-parmal$vph)*(1-parmal$vptf)*parmal$vnut*x[varind[16,n]],                             # masked act recovery To to R     196
         t3*parmal$mask*(1-parmal$vph)*(1-parmal$vptf)*parmal$vnut*x[varind[17,n]],                            #masked act recovery Tv to R       197
         t3*parmal$mask*(1-parmal$vph)*(1-parmal$vptf)*parmal$vnut*x[varind[18,n]],                           #masked act recovery Th to R        198
@@ -628,7 +628,7 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
         t3*parmal$mask*parmal$vnut*parmal$vph*(1-parmal$vptf)*x[varind[21,n]],                       # masked act recovery of GDef Togd to L     205
         t3*parmal$mask*parmal$vnut*parmal$vph*(1-parmal$vptf)*x[varind[22,n]],                     #masked act recovery of GDef Tvgd to L        206
         t3*parmal$mask*parmal$vnut*parmal$vph*(1-parmal$vptf)*x[varind[23,n]],                   #masked act recovery of GDef Thgd to L          207
-  
+        
         parmal$t2*parmal$vprn*(1-parmal$vpr)*(parmal$vprel*((popf[n]-x[varind[9,n]]-x[varind[10,n]])/popf[n])+parmal$vincprel*((x[varind[9,n]]+x[varind[10,n]])/popf[n]))*parmal$vrel*x[varind[20,n]],                       #       relapse L to In +triggering  208
         parmal$t2*(1-parmal$vprn)*(1-parmal$vpr)*(parmal$vprel*((popf[n]-x[varind[9,n]]-x[varind[10,n]])/popf[n])+parmal$vincprel*((x[varind[9,n]]+x[varind[10,n]])/popf[n]))*parmal$vrel*x[varind[20,n]],                   #      relapse L to Ia  +triggering  209
         parmal$t2*(1-tau[n])*parmal$vpr*(parmal$vprel*((popf[n]-x[varind[9,n]]-x[varind[10,n]])/popf[n])+parmal$vincprel*((x[varind[9,n]]+x[varind[10,n]])/popf[n]))*parmal$vrel*x[varind[20,n]],                           #      relapse L to Ic+triggering     210
@@ -638,69 +638,69 @@ MM_Malrates <- function(x, input, parmal, t, ti, parallel=TRUE) {
         parmal$t2*parmal$propgd[n]*tauo[n]*parmal$vpr*(parmal$vprel*((popf[n]-x[varind[9,n]]-x[varind[10,n]])/popf[n])+parmal$vincprel*((x[varind[9,n]]+x[varind[10,n]])/popf[n]))*parmal$vrel*x[varind[20,n]],       #          relapse L to Togd +triggering    214
         parmal$t2*parmal$propgd[n]*tauv[n]*parmal$vpr*(parmal$vprel*((popf[n]-x[varind[9,n]]-x[varind[10,n]])/popf[n])+parmal$vincprel*((x[varind[9,n]]+x[varind[10,n]])/popf[n]))*parmal$vrel*x[varind[20,n]],      #          relapse L to Tvgd+triggering      215
         parmal$t2*parmal$propgd[n]*tauh[n]*parmal$vpr*(parmal$vprel*((popf[n]-x[varind[9,n]]-x[varind[10,n]])/popf[n])+parmal$vincprel*((x[varind[9,n]]+x[varind[10,n]])/popf[n]))*parmal$vrel*x[varind[20,n]],       #           relapse L to Thgd  +triggering  216
-  
+        
         #Failed treatments
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*parmal$vptfp*parmal$vnup*x[varind[16,n]],                            # primaquine failed trt To to Ia     217
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptfp*parmal$vnup*x[varind[16,n]],              # primaquine failed trt To to Ic     218
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*parmal$vptfp*parmal$vnup*x[varind[16,n]],                  # primaquine failed trt To to Th     219
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*parmal$vptfp*parmal$vnup*x[varind[17,n]],                           #primaquine failed trt Tv to Ia       220
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptfp*parmal$vnup*x[varind[17,n]],             #primaquine failed trt Tv to Ic       221
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*parmal$vptfp*parmal$vnup*x[varind[17,n]],                 #primaquine failed trt Tv to Tv       222
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*parmal$vptfp*parmal$vnup*x[varind[18,n]],                           #primaquine failed trt Th to Ia       223
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*parmal$vptfp*parmal$vnup*x[varind[18,n]],             #primaquine failed trt Th to Ic       224
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*parmal$vptfp*parmal$vnup*x[varind[18,n]],                 #primaquine failed trt Th to Th       225
-  
+        
         t3*parmal$mask*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[16,n]],                                 # masked act failed trt To to Ia     226
         t3*parmal$mask*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[16,n]],                   # masked act failed trt To to Ic     227
         t3*parmal$mask*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[16,n]],                       # masked act failed trt To to Th     228
-  
+        
         t3*parmal$mask*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[17,n]],                                 #masked act failed trt Tv to Ia      229
         t3*parmal$mask*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[17,n]],                   #masked act failed trt Tv to Ic      230
         t3*parmal$mask*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[17,n]],                       #masked act failed trt Tv to Tv      231
-  
+        
         t3*parmal$mask*(1-parmal$vptfc)*parmal$vptf*parmal$vnut*x[varind[18,n]],                                 #masked act failed trt Th to Ia      232
         t3*parmal$mask*(1-parmal$vptftr)*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[18,n]],                   #masked act failed trt Th to Ic      233
         t3*parmal$mask*parmal$vptftr*parmal$vptfc*parmal$vptf*parmal$vnut*x[varind[18,n]],                       #masked act failed trt Th to Th      234
-  
+        
         t3*parmal$mask*(1-parmal$vptfc)*parmal$vnut*parmal$vptf*x[varind[21,n]],                                 # masked act failed trt Togd to Ia   235
         t3*parmal$mask*(1-parmal$vptftr)*parmal$vptfc*parmal$vnut*parmal$vptf*x[varind[21,n]],                   # masked act failed trt Togd to Ic   236
         t3*parmal$mask*parmal$vptftr*parmal$vptfc*parmal$vnut*parmal$vptf*x[varind[21,n]],                     # masked act failed trt Togd to Thgd   237
-  
+        
         t3*parmal$mask*(1-parmal$vptfc)*parmal$vnut*parmal$vptf*x[varind[22,n]],                                #masked act failed trt Tvgd to Ia     238
         t3*parmal$mask*(1-parmal$vptftr)*parmal$vptfc*parmal$vnut*parmal$vptf*x[varind[22,n]],                  #masked act failed trt Tvgd to Ic     239
         t3*parmal$mask*parmal$vptftr*parmal$vptfc*parmal$vnut*parmal$vptf*x[varind[22,n]],                    #masked act failed trt Tvgd to Tvgd     240
-  
+        
         t3*parmal$mask*(1-parmal$vptfc)*parmal$vnut*parmal$vptf*x[varind[23,n]],                               #masked act failed trt Thgd to Ia      241
         t3*parmal$mask*(1-parmal$vptftr)*parmal$vptfc*parmal$vnut*parmal$vptf*x[varind[23,n]],                 #masked act failed trt Thgd to Ic      242
         t3*parmal$mask*parmal$vptftr*parmal$vptfc*parmal$vnut*parmal$vptf*x[varind[23,n]],                   #masked act failed trt Thgd to Thgd      243
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[21,n]],                  # test + act failed trt Togd to Ia     244
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[21,n]],    # test + act failed trt Togd to Ic     245
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[21,n]],        # test + act failed trt Togd to Thgd   246
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[22,n]],                  #test + act failed trt Tvgd to Ia      247
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[22,n]],    #test + act failed trt Tvgd to Ic      248
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[22,n]],        #test + act failed trt Tvgd to Tvgd    249
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[23,n]],                  #test + act failed trt Thgd to Ia      250
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[23,n]],    #test + act failed trt Thgd to Ic      251
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*parmal$sensgd*parmal$vnut*parmal$vptf*x[varind[23,n]],        #test + act failed trt Thgd to Thgd    252
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[21,n]],               # test - primaquine failed trt Togd to Ia       253
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[21,n]], # test - primaquine failed trt Togd to Ic       254
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[21,n]],     # test - primaquine failed trt Togd to Thgd     255
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[22,n]],               # test - primaquine failed trt Tvgd to Ia       256
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[22,n]], # test - primaquine failed trt Tvgd to Ic       257
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[22,n]],     # test - primaquine failed trt Tvgd to Tvgd     258
-  
+        
         t3*(1-parmal$mask)*(1-parmal$vptfc)*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[23,n]],               #test - primaquine failed trt Thgd to Ia        259
         t3*(1-parmal$mask)*(1-parmal$vptftr)*parmal$vptfc*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[23,n]], #test - primaquine failed trt Thgd to Ic        260
         t3*(1-parmal$mask)*parmal$vptftr*parmal$vptfc*(1-parmal$sensgd)*parmal$vptfp*parmal$vnup*x[varind[23,n]]      #test - primaquine failed trt Thgd to Thgd      261
-  
+        
       )
     }
   }

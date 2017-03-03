@@ -119,7 +119,7 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
   
   initodefit <- MM_GenInitOde(maldata = maldata)
   statefit <- c(initodefit,0)
-  ti<-1
+  
   
   if(!is.null(parfile)){
     parfit <- MM_readpars(parfile)
@@ -133,23 +133,33 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
   
   # maldata = malaria prevalence data
   inp<-MM_Inputs(parfit, maldata = maldata, climatedata = climatedata)
-  #transitfit <- MM_Malrates(initodefit,inp,parfit,0,ti)
-  
+  ti<-1
+  transitfit <- MM_Malrates(initodefit,inp,parfit,0,ti)
+
   tyears<-inp$tyears
   dtout<-inp$dtout
   transitionslength<-inp$transitionslength
   
   # # SOLVE THE ODEs and get output
   timesfit <- seq(0, tyears, by = dtout) # Model run time
+  
   #Solve ODE
   outodefit <- ode(y = statefit, times = timesfit, func = MM_EpiModel, parms = parfit, method  = odemethod, input=inp)
+
   # Compute transitions at each time step
   tranodefit<-matrix(0,nrow=length(outodefit[,1]),ncol=transitionslength)
   
   tsteps<-inp$tsteps
   V<-inp$V
-  for(ti in 1:(tsteps+1)){
-    tranodefit[ti,]<-t(MM_Malrates(outodefit[ti,2:(1+V)],inp, parfit,0,ti))
+  if(parallel){
+    tranodefit<-foreach(ti = 1:(tsteps+1), .combine = rbind )%dopar%{
+      t(MM_Malrates(outodefit[ti,2:(1+V)],inp, parfit,0,ti))
+      
+    }
+  }else{
+    for(ti in 1:(tsteps+1)){
+      tranodefit[ti,]<-t(MM_Malrates(outodefit[ti,2:(1+V)],inp, parfit,0,ti))
+    }
   }
   
   
