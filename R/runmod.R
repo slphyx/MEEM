@@ -117,7 +117,7 @@ MM_CalcLL<-function(parfit, odemethod = "lsoda", maldata, climatedata){
 ###
 ### for running the model
 ## taken from MM_CalcLL but the likielihood was removed
-MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile=NULL, parallel=FALSE){
+MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile=NULL, parallel=FALSE, PostprocOutput=FALSE){
   
   
   initodefit <- MM_GenInitOde(maldata = maldata)
@@ -185,6 +185,21 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
   severe_predv1_fit<-ppoutfit[,(14*N+1):(15*N)]
   severe_predmix_fit<-ppoutfit[,(15*N+1):(16*N)]
   
+  if(PostprocOutput){
+    return(list(ppout=ppoutfit,
+                vmw_predf1_fit=vmw_predf1_fit,
+                vmw_predv1_fit=vmw_predv1_fit,
+                vmw_predmix_fit=vmw_predmix_fit,
+                his_predf1_fit=his_predf1_fit, 
+                his_predv1_fit=his_predv1_fit, 
+                his_predmix_fit=his_predmix_fit,
+                fatal_pred_fit=fatal_pred_fit,
+                severe_predf1_fit=severe_predf1_fit,
+                severe_predv1_fit=severe_predv1_fit, 
+                severe_predmix_fit=severe_predmix_fit))
+    
+  }else{
+ 
   return(list(vmw_predf1_fit=vmw_predf1_fit,
               vmw_predv1_fit=vmw_predv1_fit,
               vmw_predmix_fit=vmw_predmix_fit,
@@ -195,7 +210,8 @@ MM_RunMod <- function(parfit, odemethod = "lsoda", maldata, climatedata, parfile
               severe_predf1_fit=severe_predf1_fit,
               severe_predv1_fit=severe_predv1_fit, 
               severe_predmix_fit=severe_predmix_fit
-  ))
+        ))
+  }
 }
 
 
