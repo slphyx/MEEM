@@ -21,19 +21,52 @@ MM_Plot<-function(object, ToPlot="vmw", patchID=1){
   if(!is.null("ppout")){
     ppout<-object$"ppout"
   }
-  
+
   if(ToPlot=="vmw"){
     data<-data.frame(time=time,vmw_predf1_fit=vmw_predf1_fit)
-      
-      graph<-ggplot(data=data,aes(x=time))+
-        geom_line(aes(y=vmw_predf1_fit[,patchID],color="predf1"))+
-        geom_line(aes(y=vmw_predv1_fit[,patchID],color="predv1"))+
-        ggtitle(label = paste0("Patch:",as.character(patchID)))+
-        scale_color_manual("", breaks = c("predf1", "predv1"),
-          values = c('predf1' = 'red', 'predv1' = "blue"))+
-        xlab("year") +
-        ylab("numbers XXXX")
-
+    
+    graph<-ggplot(data=data,aes(x=time))+
+      geom_line(aes(y=vmw_predf1_fit[,patchID],color="vmw predf1"))+
+      geom_line(aes(y=vmw_predv1_fit[,patchID],color="vmw predv1"))+
+      ggtitle(label = paste0("Patch:",as.character(patchID)))+
+      scale_color_manual("", breaks = c("vmw predf1", "vmw predv1"),
+                         values = c('vmw predf1' = 'red', 'vmw predv1' = "blue"))+
+      xlab("year") +
+      ylab("numbers XXXX")
+    
+    graph
+    
   }
-  graph
+  
+  if(ToPlot=="his"){
+    data<-data.frame(time=time,his_predf1_fit=his_predf1_fit)
+    
+    graph<-ggplot(data=data,aes(x=time))+
+      geom_line(aes(y=his_predf1_fit[,patchID],color="his predf1"))+
+      geom_line(aes(y=his_predv1_fit[,patchID],color="his predv1"))+
+      ggtitle(label = paste0("Patch:",as.character(patchID)))+
+      scale_color_manual("", breaks = c("his predf1", "his predv1"),
+                         values = c('his predf1' = 'red', 'his predv1' = "blue"))+
+      xlab("year") +
+      ylab("numbers XXXX")
+    
+    graph
+    
+  }
+  
+  if(ToPlot=="severe"){
+    data<-data.frame(time=time,severe_predf1_fit=severe_predf1_fit)
+    
+    graph<-ggplot(data=data,aes(x=time))+
+      geom_line(aes(y=severe_predf1_fit[,patchID],color="severe predf1"))+
+      geom_line(aes(y=severe_predv1_fit[,patchID],color="severe predv1"))+
+      ggtitle(label = paste0("Patch:",as.character(patchID)))+
+      scale_color_manual("", breaks = c("severe predf1", "severe predv1"),
+                         values = c('severe predf1' = 'red', 'severe predv1' = "blue"))+
+      xlab("year") +
+      ylab("numbers XXXX")
+    
+    graph
+  } 
+  
 }
