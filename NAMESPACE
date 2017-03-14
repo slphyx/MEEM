@@ -3,7 +3,7 @@ export("MM_EpiModel",
        "MM_Transitions",
        "MM_Inputs",
        "MM_SheetalPars",
-       "MM_RunMod")
+       "MM_RunMod","MM_Plot")
 importFrom(Rcpp, evalCpp)
 importFrom(deSolve, ode)
 importFrom(XLConnect, readWorksheet)
