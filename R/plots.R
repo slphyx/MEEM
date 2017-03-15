@@ -97,14 +97,14 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
   }
   cat("patch id: ",1,"/",N)
 
-  vmw_incf<-vmw_casesf[,(1:N)+2]
+  vmw_incf <- vmw_casesf[,(1:N)+2]
   vmw_casesv = readWorksheet(alldata, sheet="Sheet10")
-  vmw_incv<-vmw_casesv[,(1:N)+2]
+  vmw_incv <- vmw_casesv[,(1:N)+2]
   vmw_casesmix = readWorksheet(alldata, sheet="Sheet12")
-  vmw_incmix<-vmw_casesmix[,(1:N)+2]
-  vmw_inc_t<-vmw_casesf[,1]+vmw_casesf[,2]/12 # end of the month
+  vmw_incmix <- vmw_casesmix[,(1:N)+2]
+  vmw_inc_t <- vmw_casesf[,1]+vmw_casesf[,2]/12 # end of the month
   
-  vmwdata<-data.frame(time=vmw_inc_t,vmw_incf=vmw_incf,vmw_incv=vmw_incv, vmw_incmix=vmw_incmix)
+  vmwdata <- data.frame(time=vmw_inc_t,vmw_incf=vmw_incf,vmw_incv=vmw_incv, vmw_incmix=vmw_incmix)
   #write.csv(vmwdata,file = "vmwdata.csv")
   
   # HIS cases over time
@@ -113,15 +113,15 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
   his_casesv = readWorksheet(alldata, sheet="Sheet11")
   his_incv<-his_casesv[,(1:N)+2]
   his_casesmix = readWorksheet(alldata, sheet="Sheet13")
-  his_incmix<-his_casesmix[,(1:N)+2]
-  his_inc_t<-his_casesf[,1]+his_casesf[,2]/12 # end of the month
+  his_incmix <- his_casesmix[,(1:N)+2]
+  his_inc_t <- his_casesf[,1]+his_casesf[,2]/12 # end of the month
   
-  hisdata<-data.frame(his_inc_t=his_inc_t,his_incf=his_incf,his_incv=his_incv, his_incmix=his_incmix)
+  hisdata <- data.frame(his_inc_t=his_inc_t,his_incf=his_incf,his_incv=his_incv, his_incmix=his_incmix)
   #write.csv(hisdata,file = "hisdata.csv")
   
   
-  popdat<-readWorksheet(alldata,sheet="Sheet1")
-  popdatscale<-1/popdat[1:nrow(popdat),2]
+  popdat <- readWorksheet(alldata,sheet="Sheet1")
+  popdatscale <- 1/popdat[1:nrow(popdat),2]
   
   
   #define time vector
@@ -145,9 +145,9 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
     ppout<-object$"ppout"
   }
 
-  vmwmodel<-data.frame(time=time, vmw_predf1_fit=vmw_predf1_fit,
+  vmwmodel <- data.frame(time=time, vmw_predf1_fit=vmw_predf1_fit,
                        vmw_predv1_fit=vmw_predv1_fit, vmw_predmix_fit=vmw_predmix_fit)
-  hismodel<-data.frame(time=time, his_predf1_fit=his_predf1_fit,
+  hismodel <- data.frame(time=time, his_predf1_fit=his_predf1_fit,
                        his_predv1_fit=his_predv1_fit, his_predmix_fit=his_predmix_fit)
  
   if(log10scale){
@@ -156,7 +156,7 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
   }
   #write.csv(hisdata,file = "log10hisdata.csv")
   
-  graph_vmw<-ggplot(data=vmwmodel,aes(x=time))+
+  graph_vmw <- ggplot(data=vmwmodel,aes(x=time))+
     geom_line(data=vmwmodel,aes(y=vmw_predf1_fit[,patchID],color="model Pf"))+
     geom_point(data=vmwdata,aes(x=vmw_inc_t,y=vmw_incf[,patchID], color="data Pf"),shape=4)+
     geom_line(data=vmwdata,aes(x=vmw_inc_t, y=vmw_incf[,patchID], color = "data Pf"))+
@@ -177,7 +177,7 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
        ylab("Incidence")+theme_bw()
     
   
-  graph_his<-ggplot(data=hismodel,aes(x=time))+
+  graph_his <- ggplot(data=hismodel,aes(x=time))+
     geom_line(data=hismodel,aes(y=his_predf1_fit[,patchID],color="model Pf"))+
     geom_point(data=hisdata,aes(x=his_inc_t,y=his_incf[,patchID], color="data Pf"),shape=3)+
     geom_line(data=hisdata,aes(x=his_inc_t, y=his_incf[,patchID], color = "data Pf"))+
@@ -198,8 +198,8 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
     ylab("Incidence")+theme_bw()
     
   if(log10scale){
-    grid_arrange_shared_legend(graph_vmw+scale_y_log10(),
-                               graph_his+scale_y_log10(),ncol=2, nrow = 1)
+    grid_arrange_shared_legend(graph_vmw+scale_y_log10("Incidence", limits=c(1,max(vmwmodel))),
+                               graph_his+scale_y_log10("Incidence", limits=c(1,max(hismodel))),ncol=2, nrow = 1)
   }else{  
     grid_arrange_shared_legend(graph_vmw,graph_his,ncol=2, nrow = 1)
   }
