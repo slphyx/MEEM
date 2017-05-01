@@ -76,7 +76,6 @@ Replace0<-function(obdat, patchID, val,type="vmw"){
 MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
   
   ## data
-  
   if(file.exists(maldata)){
     alldata = loadWorkbook(maldata);
   }else{
