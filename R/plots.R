@@ -94,7 +94,7 @@ MM_Plot<-function(object, maldata, patchID=1, log10scale=FALSE){
   if(patchID > N){
     stop("Max patch id : ",N)
   }
-  cat("patch id: ",1,"/",N)
+  cat("patch id: ",patchID,"/",N)
 
   vmw_incf <- vmw_casesf[,(1:N)+2]
   vmw_casesv = readWorksheet(alldata, sheet="Sheet10")
